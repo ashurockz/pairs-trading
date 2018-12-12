@@ -1,0 +1,145 @@
+# pairs-trading
+
+#importing libraries
+import pandas as pd
+%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize']=(20.0,10.0)
+
+#in this file, return values of finance sector stocks are taken. It is calculated by dividing share value by face vale.
+df = pd.read_csv("FILE.csv",header = 0,index_col="Company")
+df.head()
+
+#finance sector has maximum companies
+grouped = df.groupby('sectors')
+print(grouped.size())
+
+finance = grouped.get_group('finance')
+finance = finance.drop('sectors', 1)
+
+c1 =[] #for containing row number of company 1 of the pair
+c2 =[] #for containing row number of company 2 of the pair
+value=[] #for containg corrcoef of the 2 companies' return values
+for t in range(11):
+    b = finance.iloc[t,0:52]
+    for g in range(10-t):
+        c = finance.iloc[g+t+1,0:52]
+        c1.append(t)
+        c2.append(g+t+1)
+        value.append(np.corrcoef(b, c)[0][1])
+        
+B = np.zeros(20, int) #for containing index number of the maximum values
+for i in range(20):
+    idx = np.argmax(value)
+    B[i]=idx
+    print(value[idx]) # for printing top 20 values of corrcoef; all are above 8.5
+    value[idx]=0
+    
+#plotting 20 graphs to select 5 out of them manually by looking over divergence and convergence of graph 
+a = np.arange(52)
+for i in range(20):
+    print(str(c1[B[i]]) + str(' - ') + str(finance.iloc[[c1[B[i]]]].index.tolist()))
+    print(str(c2[B[i]]) + str(' - ') + str(finance.iloc[[c2[B[i]]]].index.tolist()))
+    b = finance.iloc[c1[B[i]],0:52]
+    c = finance.iloc[c2[B[i]],0:52]
+    plt.plot(a,b, 'b-')
+    plt.plot(a,c, 'g-')
+    plt.ylabel('return value')
+    plt.xlabel('time')
+    plt.show()
+    
+#algo on first pair(2,8)
+diff1 = finance.iloc[2] - finance.iloc[8]
+m = diff1.iloc[0:52].mean()
+sd = diff1.iloc[0:52].std()
+amount1 = 20000
+i=0
+while (i<26):
+    if (diff1.iloc[i+52] > (m+2.5*sd)):
+        i = i +1
+        for a in range(26-i):
+            if (diff1.iloc[i+52+a] < (m+sd)):
+                amount1 = (amount1*((finance.iloc[8,i+52+a]/finance.iloc[8,i+51])+(finance.iloc[2,i+51]/finance.iloc[2,i+52+a])))/2
+                i = i + a + 1
+                break
+    else:
+        i = i+1
+print(amount1)
+
+#algo on second pair(10,6)
+diff1 = finance.iloc[10] - finance.iloc[6]
+m = diff1.iloc[0:52].mean()
+sd = diff1.iloc[0:52].std()
+amount2 = 20000
+i=0
+while (i<26):
+    if (diff1.iloc[i+52] > (m+2.5*sd)):
+        i = i +1
+        for a in range(26-i):
+            if (diff1.iloc[i+52+a] < (m+sd)):
+                amount2 = (amount2*((finance.iloc[6,i+52+a]/finance.iloc[6,i+51])+(finance.iloc[10,i+51]/finance.iloc[10,i+52+a])))/2
+                i = i + a + 1
+                break
+    else:
+        i = i+1
+print(amount2)
+
+#algo for third pair(4,3)
+diff1 = finance.iloc[4] - finance.iloc[3]
+m = diff1.iloc[0:52].mean()
+sd = diff1.iloc[0:52].std()
+amount3 = 20000
+i=0
+while (i<26):
+    if (diff1.iloc[i+52] > (m+2.5*sd)):
+        i = i +1
+        for a in range(26-i):
+            if (diff1.iloc[i+52+a] < (m+sd)):
+                amount3 = (amount3*((finance.iloc[3,i+52+a]/finance.iloc[3,i+51])+(finance.iloc[4,i+51]/finance.iloc[4,i+52+a])))/2
+                i = i + a + 1
+                break
+    else:
+        i = i+1
+print(amount3)
+
+#algo for fourth pair(10,2)
+diff1 = finance.iloc[10] - finance.iloc[2]
+m = diff1.iloc[0:52].mean()
+sd = diff1.iloc[0:52].std()
+amount4 = 20000
+i=0
+while (i<26):
+    if (diff1.iloc[i+52] > (m+2.5*sd)):
+        i = i +1
+        for a in range(26-i):
+            if (diff1.iloc[i+52+a] < (m+sd)):
+                amount4 = (amount4*((finance.iloc[2,i+52+a]/finance.iloc[2,i+51])+(finance.iloc[10,i+51]/finance.iloc[10,i+52+a])))/2
+                i = i + a + 1
+                break
+    else:
+        i = i+1
+print(amount4)
+
+#algo for fifth pair ( 4 , 6 )
+diff1 = finance.iloc[4] - finance.iloc[6]
+m = diff1.iloc[0:52].mean()
+sd = diff1.iloc[0:52].std()
+amount5 = 20000
+i=0
+while (i<26):
+    if (diff1.iloc[i+52] > (m+2.5*sd)):
+        i = i +1
+        for a in range(26-i):
+            if (diff1.iloc[i+52+a] < (m+sd)):
+                amount5 = (amount5*((finance.iloc[6,i+52+a]/finance.iloc[6,i+51])+(finance.iloc[4,i+51]/finance.iloc[4,i+52+a])))/2
+                i = i + a + 1
+                break
+    else:
+        i = i+1
+print(amount5)
+
+initial_amount = 100000
+final_amount = amount1 + amount2 + amount3 + amount4 + amount5
+return_in_6_months_in_percentage = ((final_amount/initial_amount)-1)*100
+print('return_in_6_months_in_percentage = ' + str(return_in_6_months_in_percentage) + ' % ')
